@@ -8,7 +8,7 @@ namespace serverPB
 {
     public class World
     {
-        public int ID {  get; set; }
+        public int Id {  get; set; }
         public string Name { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
@@ -18,7 +18,7 @@ namespace serverPB
         public Dictionary<string, int> PlayerScores { get; set; }=new();
         public World(int id, string name, int width, int height)
         {
-            ID = id; Name = name;
+            Id = id; Name = name;
             Width = width; Height = height;
             Pixels= new byte[width, height];
             for (int x = 0; x < Width; x++)

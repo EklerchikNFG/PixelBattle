@@ -1,8 +1,8 @@
 ﻿using System.Net.Sockets;
 using System.Text;
-using PixelBattle.Common;
+using Common;
 
-namespace PixelBattle.Server;
+namespace serverPB;
 
 public class ClientHandler
 {
