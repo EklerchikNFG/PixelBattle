@@ -1,4 +1,6 @@
 using System.Net.Sockets;
+using System.Threading.Tasks;
+using System.Text;
 using Common;
 
 namespace ClientPB
@@ -64,12 +66,91 @@ namespace ClientPB
             colorButtons[index].FlatAppearance.BorderSize = 3;
             colorButtons[index].FlatAppearance.BorderColor = Color.Yellow;
         }
-    class WorldItem
+
+        private async Task btnConnect_Click(object sender, EventArgs e)
+        {
+            string serverIP = txtServerIP.Text;
+            if (string.IsNullOrEmpty(serverIP)) return;
+            btnConnect.Enabled = false;
+            lblStatus.Text = $"Подключение к {serverIP}";
+
+            try
+            {
+                _client = new TcpClient();
+                await _client.ConnectAsync(serverIP, 8888);
+                var stream = _client.GetStream();
+                _reader = new StreamReader(stream, Encoding.UTF8);
+                _writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
+
+                var hello = await _reader.ReadLineAsync();
+                _clientid = hello.Split('|')[1];
+                lblStatus.Text = $"Подключение к {serverIP}.ID:{_clientid}";
+                _ = Task.Run(ListenToServer);
+                await RequestWorldListWithRetry();
+                worldList.Enabled = true;
+                btnJoin.Enabled = true;
+                btnCreate.Enabled = true;
+                btnRefresh.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка:{ex.Message}");
+                btnConnect.Enabled = true;
+            }
+        }
+        private async void btnJoin_Click(object sender, EventArgs e)
+        {
+            if (worldList.SelectedIndex == null)
+            {
+                lblStatus.Text = "Выберите мир";
+                return;
+            }
+
+            var selected = (WorldItem)worldList.SelectedItem;
+            await _writer.WriteLineAsync($"{ClientCommands.JoinWorld}|{selected.Id}");
+            lblStatus.Text = $"Присоединяемся к миру{selected.Name}...";
+        }
+
+        private async void btnCreate_Click(object sender, EventArgs e)
+        {
+            string name = Microsoft.VisualBasic.Interaction.InputBox(
+                "Введите название мира:",
+                "Cоздать мир",
+                $"World_{DateTime.Now.Ticks}");
+
+            if (string.IsNullOrEmpty(name)) { return; }
+            await _writer.WriteLineAsync($"{ClientCommands.CreateWorld}|{name}|50|50");
+            lblStatus.Text = $"Создается мир{name}...";
+        }
+
+        private async void btnRefresh_Click(object sender, EventArgs e)
+        {
+            await _writer.WriteLineAsync(ClientCommands.ListWorlds);
+            lblStatus.Text = "Обновление списка миров..";
+        }
+
+        private async Task RequestWorldListWithRetry()
+        {
+            for (int i=0;i<3;i++)
+            {
+                await _writer.WriteLineAsync(ClientCommands.ListWorlds);
+                await Task.Delay(200);
+
+                if (worldList.Items.Count>0)
+                    return;
+            }
+            lblStatus.Text = "Не удалось загрузить список миров после 3 попыток";
+        }
+
+        class WorldItem
         {
             public int Id { get; set; }
             public string Name { get; set; }
             public override string ToString() => Name;
 
         }
+
+      
+
     }
 }

@@ -124,6 +124,7 @@
             btnRefresh.TabIndex = 3;
             btnRefresh.Text = "Обновить список миров";
             btnRefresh.UseVisualStyleBackColor = true;
+            btnRefresh.Click += btnRefresh_Click;
             // 
             // panel1
             // 
