@@ -179,7 +179,6 @@
             btnColor4.Size = new Size(35, 30);
             btnColor4.TabIndex = 0;
             btnColor4.UseVisualStyleBackColor = false;
-            btnColor4.Click += button5_Click;
             // 
             // btnColor3
             // 
