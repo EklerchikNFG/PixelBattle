@@ -2,6 +2,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Text;
 using Common;
+using System.Runtime.CompilerServices;
 
 namespace ClientPB
 {
@@ -14,7 +15,7 @@ namespace ClientPB
         private int _currentWorldId = -1;
         private WorldState _currentWorld;
         private int _selectedColor = 1;
-        private int _cellsize = 10;
+        private int _cellSize = 10;
         private DateTime _lastUpdate = DateTime.MinValue;
         private Dictionary<int, string> _availableWorlds = new();
         public Form1()
@@ -131,12 +132,12 @@ namespace ClientPB
 
         private async Task RequestWorldListWithRetry()
         {
-            for (int i=0;i<3;i++)
+            for (int i = 0; i < 3; i++)
             {
                 await _writer.WriteLineAsync(ClientCommands.ListWorlds);
                 await Task.Delay(200);
 
-                if (worldList.Items.Count>0)
+                if (worldList.Items.Count > 0)
                     return;
             }
             lblStatus.Text = "Ќе удалось загрузить список миров после 3 попыток";
@@ -150,7 +151,22 @@ namespace ClientPB
 
         }
 
-      
+        private void canvas_Paint(object sender, PaintEventArgs e)
+        {
 
+            if (_currentWorld?.Pixels== null) return;
+
+            for (int x = 0; x < _currentWorld.Width; x++)
+            {
+                for (int y = 0; y < _currentWorld.Height; y++)
+                {
+                    var color = ColorPalette.GetColor(_currentWorld.Pixels[x, y]);
+                    using var brush = new SolidBrush(color);
+                    e.Graphics.FillRectangle(brush, x* _cellSize, y * _cellSize, _cellSize, _cellSize);
+                }
+            }
+        }
     }
 }
+    
+
