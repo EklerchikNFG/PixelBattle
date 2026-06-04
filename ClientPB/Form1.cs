@@ -168,7 +168,7 @@ namespace ClientPB
             }
         }
 
-        private void canvas_MouseClick(object sender, MouseEventArgs e)
+        private async void canvas_MouseClick(object sender, MouseEventArgs e)
         {
 
             if (_currentWorld == null) return;
@@ -183,13 +183,15 @@ namespace ClientPB
                     return;
                 }
 
-                await _writer.WriteLineAsync($"{ClientCommands.PlacePixel}|{_currentWorld.Id}|{x}|{y}|{_selectedColor}"}
-            ;
-            lastPixelTime = now;
-            _currentWorld.Pixels[x, y] = (byte)_selectedColor;
-            canvas.Invalidate();
-        }
+                await _writer.WriteLineAsync($"{ClientCommands.PlacePixel}|{_currentWorld.Id}|{x}|{y}|{_selectedColor}");
 
+                _lastPixelTime = now;
+                _currentWorld.Pixels[x, y] = (byte)_selectedColor;
+                canvas.Invalidate();
+            }
+        
+        }
+        
         private void cooldownTimer_Tick(object sender, EventArgs e)
         {
             var elapsed = (DateTime.UtcNow - _lastPixelTime).TotalSeconds;
@@ -274,7 +276,7 @@ namespace ClientPB
                             _currentWorld.Pixels[x, y] = byte.Parse(pixelData[y * _currentWorld.Width + x].ToString());
                         }
                     }
-                    this.Text = $"Pixel Battle - {_currentWorld.Name} ({_currentWorld.Width}x{_currentWorld.Height)}";
+                    this.Text = $"Pixel Battle - {_currentWorld.Name} ({_currentWorld.Width}x{_currentWorld.Height})";
                     canvas.Invalidate();
                     break;
                 case ServerCommands.PixelPlaced:
