@@ -18,6 +18,7 @@ namespace ClientPB
         private int _selectedColor = 1;
         private int _cellSize = 10;
         private DateTime _lastUpdate = DateTime.MinValue;
+        private DateTime _lastPixelTime = DateTime.MinValue;
         private Dictionary<int, string> _availableWorlds = new();
         public Form1()
         {

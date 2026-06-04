@@ -90,7 +90,7 @@ public class GameServer
 
             // Проверка cooldown (3 секунды)
             var now = DateTime.UtcNow;
-            if (world.LastPixelTime.TryGetValue(clientId, out var lastTime))
+            if (world._lastPixelTime.TryGetValue(clientId, out var lastTime))
             {
                 if ((now - lastTime).TotalSeconds < 3)
                     return (false, $"Подождите {3 - (now - lastTime).TotalSeconds:F1} секунд");
@@ -98,7 +98,7 @@ public class GameServer
 
             // Ставим пиксель
             world.Pixels[x, y] = (byte)colorIndex;
-            world.LastPixelTime[clientId] = now;
+            world._lastPixelTime[clientId] = now;
 
             // Обновляем счёт
             world.PlayerScores[clientId] = world.PlayerScores.GetValueOrDefault(clientId) + 1;
