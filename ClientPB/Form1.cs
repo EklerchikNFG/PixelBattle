@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Text;
 using Common;
 using System.Runtime.CompilerServices;
+using serverPB;
 
 namespace ClientPB
 {
@@ -154,7 +155,7 @@ namespace ClientPB
         private void canvas_Paint(object sender, PaintEventArgs e)
         {
 
-            if (_currentWorld?.Pixels== null) return;
+            if (_currentWorld?.Pixels == null) return;
 
             for (int x = 0; x < _currentWorld.Width; x++)
             {
@@ -162,11 +163,84 @@ namespace ClientPB
                 {
                     var color = ColorPalette.GetColor(_currentWorld.Pixels[x, y]);
                     using var brush = new SolidBrush(color);
-                    e.Graphics.FillRectangle(brush, x* _cellSize, y * _cellSize, _cellSize, _cellSize);
+                    e.Graphics.FillRectangle(brush, x * _cellSize, y * _cellSize, _cellSize, _cellSize);
                 }
             }
         }
+
+        private void canvas_MouseClick(object sender, MouseEventArgs e)
+        {
+
+            if (_currentWorld == null) return;
+            var x = e.X / _cellSize;
+            var y = e.Y / _cellSize;
+            if (x >= 0 && x < _currentWorld.Width && y >= 0 && y < _currentWorld.Height)
+            {
+                var now = DateTime.UtcNow;
+                if ((now - _lastPixelTime).TotalSeconds < 3)
+                {
+                    lblStatus.Text = $"Подожди {3 - (now - _lastPixelTime).TotalSeconds:F1} ceкунд";
+                    return;
+                }
+
+                await _writer.WriteLineAsync($"{ClientCommands.PlacePixel}|{_currentWorld.Id}|{x}|{y}|{_selectedColor}"}
+            ;
+            lastPixelTime = now;
+            _currentWorld.Pixels[x, y] = (byte)_selectedColor;
+            canvas.Invalidate();
+        }
+
+        private void cooldownTimer_Tick(object sender, EventArgs e)
+        {
+            var elapsed = (DateTime.UtcNow - _lastPixelTime).TotalSeconds;
+            if (elapsed < 3)
+                lblCooldown.Text = $"КД: {(3 - elapsed):F1} сек";
+            else
+                lblCooldown.Text = "Готов к пикселю!";
+        }
+
+        private async Task ListenToServer()
+        {
+            try
+            {
+                string line;
+                while ((line = await _reader.ReadLineAsync())!=null)
+                {
+                    this.Invoke(() => ProcessServerMessage(line));
+
+                }
+            }
+            catch { }
+        }
+
+        private void ProcessServerMessage(string msg)
+        {
+            var parts=msg.Split('|');
+            switch(parts[0]) {
+                case ServerCommands.WorldList:
+                    break;
+                case ServerCommands.WorldState:
+                    break;
+                case ServerCommands.PixelPlaced:
+                    if (parts.Length>=5&&int.Parse(parts[1])==_currentWorldId)
+                    {
+                        int x=int.Parse(parts[2]);
+                        int y=int.Parse(parts[3]);
+                        int color=int.Parse(parts[4]);
+                        if (_currentWorld?.Pixels!=null&&x>=0&&x<_currentWorld.Width&&y<_currentWorld.Height)
+                        {
+                            _currentWorld.Pixels[x, y] = (byte)color;
+                            canvas.Invalidate();
+                        }
+                    }
+                    break;
+                case ServerCommands.Error: 
+                    lblStatus.Text = $"ошибка :{parts[1]}";
+                    break;
+            }
     }
+
+}
 }
     
 

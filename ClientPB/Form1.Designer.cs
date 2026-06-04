@@ -60,6 +60,7 @@
             canvas.Size = new Size(543, 592);
             canvas.TabIndex = 0;
             canvas.Paint += canvas_Paint;
+            canvas.MouseClick += canvas_MouseClick;
             // 
             // label1
             // 
@@ -239,6 +240,10 @@
             lblCooldown.Size = new Size(19, 15);
             lblCooldown.TabIndex = 7;
             lblCooldown.Text = "кд";
+            // 
+            // cooldownTimer
+            // 
+            cooldownTimer.Tick += cooldownTimer_Tick;
             // 
             // Form1
             // 

@@ -14,7 +14,7 @@ namespace serverPB
         public int Height { get; set; }
         public byte[,] Pixels { get; set; }
         public List<string> Players { get; set; } = new List<string>();
-        public Dictionary<string, DateTime> LastPixelTime { get; set; }=new();
+        public Dictionary<string, DateTime> _lastPixelTime { get; set; }=new();
         public Dictionary<string, int> PlayerScores { get; set; }=new();
         public World(int id, string name, int width, int height)
         {
