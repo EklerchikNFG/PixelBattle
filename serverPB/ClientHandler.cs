@@ -52,9 +52,21 @@ public class ClientHandler
         switch (parts[0])
         {
             case ClientCommands.CreateWorld:
-                // var (created, result) = _server.HandleCreateWorld(ClientId, parts[1], int.Parse(parts[2]), int.Parse(parts[3]));
-                // _writer.WriteLine(created ? $"{ServerCommands.WorldState}|{result}" : $"{ServerCommands.Error}|{result}");
-                _writer.WriteLine($"{ServerCommands.Error}|Создание миров временно отключено. Используйте Demo Field");
+                var (created, result) = _server.HandleCreateWorld(ClientId, parts[1], int.Parse(parts[2]), int.Parse(parts[3]));
+                if (created)
+                {
+                    // После создания мира сразу присоединяемся к нему
+                    var worldToJoin = _server.JoinWorld(ClientId, int.Parse(result));
+                    if (worldToJoin != null)
+                    {
+                        CurrentWorldId = worldToJoin.Id;
+                        _server.SendWorldState(this, worldToJoin);
+                    }
+                }
+                else
+                {
+                    _writer.WriteLine($"{ServerCommands.Error} {result}");
+                }
                 break;
 
             case ClientCommands.JoinWorld:
