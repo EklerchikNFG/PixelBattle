@@ -23,7 +23,7 @@ namespace Common
         public int Width { get; set; }
         public int Height { get; set; }
         public byte [,] Pixels { get; set; }
-        public Dictionary<string, int> PlayerScores { get; set; }
+        public Dictionary<string, int> PlayerScores { get; set; } = new();
     }
 
     public static class ColorPalette

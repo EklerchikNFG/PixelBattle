@@ -2,8 +2,8 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Text;
 using Common;
-using System.Runtime.CompilerServices;
-using serverPB;
+//using.System.Seurity.Cryptography;
+
 
 namespace ClientPB
 {
@@ -12,12 +12,11 @@ namespace ClientPB
         private TcpClient _client;
         private StreamReader _reader;
         private StreamWriter _writer;
-        private string _clientid;
+        private string _clientId;
         private int _currentWorldId = -1;
         private WorldState _currentWorld;
         private int _selectedColor = 1;
         private int _cellSize = 10;
-        private DateTime _lastUpdate = DateTime.MinValue;
         private DateTime _lastPixelTime = DateTime.MinValue;
         private Dictionary<int, string> _availableWorlds = new();
         public Form1()
@@ -56,7 +55,7 @@ namespace ClientPB
             lblStatus.Text = $"Выбран цвет: {btn.BackColor.Name}";
             HighlightSelectedColor(colorIndex);
         }
-        public void HighlightSelectedColor(int index)
+        private void HighlightSelectedColor(int index)
         {
             Button[] colorButtons = { btnColor0, btnColor1, btnColor2, btnColor3, btnColor4, btnColor5, btnColor6, btnColor7 };
 
@@ -70,7 +69,7 @@ namespace ClientPB
             colorButtons[index].FlatAppearance.BorderColor = Color.Yellow;
         }
 
-        private async Task btnConnect_Click(object sender, EventArgs e)
+        private async void btnConnect_Click(object sender, EventArgs e)
         {
             string serverIP = txtServerIP.Text;
             if (string.IsNullOrEmpty(serverIP)) return;
@@ -80,14 +79,15 @@ namespace ClientPB
             try
             {
                 _client = new TcpClient();
+
                 await _client.ConnectAsync(serverIP, 8888);
                 var stream = _client.GetStream();
                 _reader = new StreamReader(stream, Encoding.UTF8);
                 _writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
 
                 var hello = await _reader.ReadLineAsync();
-                _clientid = hello.Split('|')[1];
-                lblStatus.Text = $"Подключение к {serverIP}.ID:{_clientid}";
+                _clientId = hello.Split('|')[1];
+                lblStatus.Text = $"Подключение к {serverIP}.ID:{_clientId}";
                 _ = Task.Run(ListenToServer);
                 await RequestWorldListWithRetry();
                 worldList.Enabled = true;
@@ -103,7 +103,7 @@ namespace ClientPB
         }
         private async void btnJoin_Click(object sender, EventArgs e)
         {
-            if (worldList.SelectedIndex == null)
+            if (worldList.SelectedItem == null)
             {
                 lblStatus.Text = "Выберите мир";
                 return;
@@ -190,9 +190,9 @@ namespace ClientPB
                 _currentWorld.Pixels[x, y] = (byte)_selectedColor;
                 canvas.Invalidate();
             }
-        
+
         }
-        
+
         private void cooldownTimer_Tick(object sender, EventArgs e)
         {
             var elapsed = (DateTime.UtcNow - _lastPixelTime).TotalSeconds;
@@ -207,7 +207,7 @@ namespace ClientPB
             try
             {
                 string line;
-                while ((line = await _reader.ReadLineAsync())!=null)
+                while ((line = await _reader.ReadLineAsync()) != null)
                 {
                     this.Invoke(() => ProcessServerMessage(line));
 
@@ -218,8 +218,9 @@ namespace ClientPB
 
         private void ProcessServerMessage(string msg)
         {
-            var parts=msg.Split('|');
-            switch(parts[0]) {
+            var parts = msg.Split('|');
+            switch (parts[0])
+            {
                 case ServerCommands.WorldList:
                     _availableWorlds.Clear();
                     worldList.Items.Clear();
@@ -281,25 +282,31 @@ namespace ClientPB
                     canvas.Invalidate();
                     break;
                 case ServerCommands.PixelPlaced:
-                    if (parts.Length>=5&&int.Parse(parts[1])==_currentWorldId)
+                    if (parts.Length >= 5 && int.Parse(parts[1]) == _currentWorldId)
                     {
-                        int x=int.Parse(parts[2]);
-                        int y=int.Parse(parts[3]);
-                        int color=int.Parse(parts[4]);
-                        if (_currentWorld?.Pixels!=null&&x>=0&&x<_currentWorld.Width&&y<_currentWorld.Height)
+                        int x = int.Parse(parts[2]);
+                        int y = int.Parse(parts[3]);
+                        int color = int.Parse(parts[4]);
+                        if (_currentWorld?.Pixels != null && x >= 0 && x < _currentWorld.Width && y < _currentWorld.Height)
                         {
                             _currentWorld.Pixels[x, y] = (byte)color;
                             canvas.Invalidate();
                         }
                     }
                     break;
-                case ServerCommands.Error: 
+                case ServerCommands.Error:
                     lblStatus.Text = $"ошибка :{parts[1]}";
                     break;
             }
+        }
+
+        private async void Form1_Load(object sender, EventArgs e)
+        {
+        }
+
     }
 
 }
-}
+
     
 

@@ -87,6 +87,7 @@
             btnConnect.TabIndex = 3;
             btnConnect.Text = "подключиться к серверу";
             btnConnect.UseVisualStyleBackColor = true;
+            btnConnect.Click += btnConnect_Click;
             // 
             // worldList
             // 
@@ -106,6 +107,7 @@
             btnJoin.TabIndex = 3;
             btnJoin.Text = "Зайти на мир";
             btnJoin.UseVisualStyleBackColor = true;
+            btnJoin.Click += btnJoin_Click;
             // 
             // btnCreate
             // 
